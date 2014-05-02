@@ -17,7 +17,7 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 		<batch:threading-profile poolExhaustedAction="WAIT" />
         <batch:input>
             <db:select config-ref="Generic_Database_Configuration" doc:name="query database for accounts">
-                <db:dynamic-query><![CDATA[SELECT * FROM Account]]></db:dynamic-query>
+                <db:dynamic-query><![CDATA[SELECT Name, AccountNumber, AccountSource, AnnualRevenue, BillingCity, BillingCountry, BillingPostalCode, BillingState, BillingStreet, Description, Fax, Industry, LastModifiedDate, NumberOfEmployees, Ownership, Phone, Rating, ShippingCity, ShippingCountry, ShippingPostalCode, ShippingState, ShippingStreet, Sic, SicDesc, Site, TickerSymbol, Type, Website FROM Account]]></db:dynamic-query>
             </db:select>
         </batch:input>
 		<batch:process-records>

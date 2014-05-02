@@ -6,7 +6,7 @@
 	<groupId>org.mule.templates</groupId>
 	<artifactId>template-db2sfdc-account-broadcast</artifactId>
 	<packaging>mule</packaging>
-	<version>1.0.0</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<name>DB2SFDC Accounts Broadcast Anypoint Template Project</name>
 
 	<properties>
