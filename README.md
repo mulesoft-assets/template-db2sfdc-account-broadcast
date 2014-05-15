@@ -23,13 +23,13 @@ Please review the terms of the license before downloading and using this templat
 # Use Case <a name="usecase"/>
 As a Salesforce admin I want to synchronize accounts from Database to Salesforce organization.
 
-This Template should serve as a foundation for the process of broadcasting accounts from Database to Salesfoce instance, being able to specify filtering criteria and desired behavior when an account already exists in the destination org. 
+This Template should serve as a foundation for the process of broadcasting accounts from Database to Salesfoce instance, being able to specify filtering criteria and desired behavior when an account already exists in the destination. 
 
 As implemented, this Template leverage the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing).
 The batch job is divided in  Input, Process and On Complete stages.
 During the Input stage the Template will go to the Database and query all the existing Accounts that match the filter criteria.
-During the Process stage, each Account will be filtered depending on, if it has an existing matching account in the SFDC Org and if the last updated date of the later is greater than the one of Database Org.
-The last step of the Process stage will group the accounts and create them in SFDC Org.
+During the Process stage, each Account will be filtered depending on, if it has an existing matching account in the Salesforce and if the last updated date of the later is greater than the one of Database.
+The last step of the Process stage will group the accounts and create them in Salesforce.
 Finally during the On Complete stage the Template will output statistics data into the console with the results of the batch execution. 
 
 # Run it! <a name="runit"/>
@@ -94,7 +94,9 @@ In order to use this Template you need to configure properties (Credentials, con
 ### Database Connector configuration
 + database.url=jdbc:mysql://192.168.224.130:3306/mule?user=mule&password=mule
 
-#### SalesForce Connector configuration for company B
+If it is required to connect to a different Database there should be provided the jar for the library and changed the value of that field in the connector.
+
+### SalesForce Connector configuration
 + sfdc.a.username `joan.baez@orgb`
 + sfdc.a.password `JoanBaez456`
 + sfdc.a.securityToken `ces56arl7apQs56XTddf34X`

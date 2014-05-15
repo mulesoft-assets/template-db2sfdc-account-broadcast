@@ -24,9 +24,9 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 			<batch:step name="foreachAccountInAGetAccountInBStep">
 				<enricher source="#[payload]" target="#[recordVars['accountInB']]"
 					doc:name="store result in record var 'accountInB'">
-					<sfdc:query-single config-ref="SalesforceA"
+					<sfdc:query-single config-ref="Salesforce"
 						query="SELECT Id FROM Account WHERE Name = '#[payload['Name']]'"
-						doc:name="query Account in Salesforce Instance A" />
+						doc:name="query Account in Salesforce" />
 				</enricher>
 			</batch:step>
 			<batch:step name="foreachAccountInAUpsertAccountInBStep">
@@ -56,7 +56,7 @@ payload.put('NumberOfEmployees', Integer.parseInt(payload['NumberOfEmployees']) 
 	</batch:job>
     <flow name="commitAccountsFlow" doc:name="commitAccountsFlow">
         <logger message="Accounts to update/create: #[payload]" level="INFO" doc:name="log Accounts to update/create"/>
-        <sfdc:upsert config-ref="SalesforceA" externalIdFieldName="Id" type="Account" doc:name="upsert Accounts in Salesforce Instance A">
+        <sfdc:upsert config-ref="Salesforce" externalIdFieldName="Id" type="Account" doc:name="upsert Accounts in Salesforce">
             <sfdc:objects ref="#[payload]"/>
         </sfdc:upsert>
         <logger message="Upsert result: #[payload]" level="ERROR" doc:name="log Result"/>

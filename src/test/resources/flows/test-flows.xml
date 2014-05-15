@@ -18,6 +18,6 @@ http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfd
         </db:delete>
     </sub-flow>    
     <sub-flow name="selectAccountFromSalesforce" doc:name="selectAccountFromSalesforce">
-        <sfdc:query-single config-ref="SalesforceA" query="SELECT Id, AccountNumber, Phone, Name, NumberOfEmployees FROM Account WHERE Name = '#[payload.Name]'" doc:name="Salesforce"/>
+        <sfdc:query-single config-ref="Salesforce" query="SELECT Id, AccountNumber, Phone, Name, NumberOfEmployees FROM Account WHERE Name = '#[payload.Name]'" doc:name="Salesforce"/>
     </sub-flow>
 </mule>
