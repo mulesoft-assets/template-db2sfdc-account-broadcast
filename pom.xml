@@ -7,7 +7,7 @@
 	<artifactId>template-db2sfdc-account-broadcast</artifactId>
 	<packaging>mule</packaging>
 	<version>1.0.0-SNAPSHOT</version>
-	<name>DB2SFDC Accounts Broadcast Anypoint Template Project</name>
+	<name>db2sfdc-account-broadcast Mule Anypoint Template Project</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
