@@ -10,8 +10,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mule.MessageExchangePattern;
 import org.mule.api.MuleEvent;
-import org.mule.construct.Flow;
 import org.mule.processor.chain.SubflowInterceptingChainLifecycleWrapper;
+import org.mule.tck.probe.PollingProber;
+import org.mule.tck.probe.Prober;
 import org.mule.templates.builders.ObjectBuilder;
 
 import com.mulesoft.module.batch.BatchTestHelper;
@@ -30,15 +31,19 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 	
 	private BatchTestHelper helper;
 	private Map<String, Object> account;
+	
+	protected final Prober pollProber = new PollingProber(60000, 1000l);
 
 	@Before
 	public void setUp() throws Exception {
 		helper = new BatchTestHelper(muleContext);
 		createAccountInDB();
-	}
+}
 
 	@After
 	public void tearDown() throws Exception {
+		stopFlowSchedulers("triggerFlow");
+		
 		final Map<String, Object> acc = new HashMap<String, Object>();
 		acc.put("Name", account.get("Name"));
 		deleteAccountFromDB(acc);
@@ -47,8 +52,8 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testMainFlowNew() throws Exception {
-		Flow flow = getFlow("mainFlow");
-		MuleEvent event = flow.process(getTestEvent("", MessageExchangePattern.REQUEST_RESPONSE));
+		// Run poll and wait for it to run
+		runSchedulersOnce("triggerFlow");
 
 		helper.awaitJobTermination(120 * 1000, 500);
 		helper.assertJobWasSuccessful();
@@ -56,7 +61,7 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 		SubflowInterceptingChainLifecycleWrapper subflow = getSubFlow("selectAccountFromSalesforce");
 		subflow.initialise();
 
-		event = subflow.process(getTestEvent(account, MessageExchangePattern.REQUEST_RESPONSE));
+		MuleEvent event = subflow.process(getTestEvent(account, MessageExchangePattern.REQUEST_RESPONSE));
 		Map<String, Object> result = (Map<String, Object>) event.getMessage().getPayload();
 		log.info("selectAccountFromSalesforce result: " + result);
 
