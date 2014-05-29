@@ -26,7 +26,8 @@ Here you should:
             <fixed-frequency-scheduler frequency="${poll.frequencyMillis}" startDelay="${poll.startDelayMillis}"/>
             <watermark variable="lastQueryDate" default-expression="${watermark.default.expression}" selector="MAX" selector-expression="#[payload.LastModifiedDate]"/>
             <db:select config-ref="GenericDatabaseConnector" doc:name="query database for accounts">
-                <db:parameterized-query><![CDATA[SELECT Name, AccountNumber, AccountSource, AnnualRevenue, BillingCity, BillingCountry, BillingPostalCode, BillingState, BillingStreet, Description, Fax, Industry, LastModifiedDate, NumberOfEmployees, Ownership, Phone, Rating, ShippingCity, ShippingCountry, ShippingPostalCode, ShippingState, ShippingStreet, Sic, SicDesc, Site, TickerSymbol, Type, Website FROM Account WHERE LastModifiedDate > #[flowVars['lastQueryDate']] ORDER BY LastModifiedDate ASC]]></db:parameterized-query>
+                <db:parameterized-query><![CDATA[SELECT AccountNumber, Description, Id, Name, NumberOfEmployees, Phone, Type, LastModifiedDate FROM Account WHERE LastModifiedDate > #[flowVars['lastQueryDate']] ORDER BY LastModifiedDate ASC]]></db:parameterized-query>
+
 
             </db:select>
         </poll>
