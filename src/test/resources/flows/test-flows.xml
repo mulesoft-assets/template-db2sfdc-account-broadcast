@@ -10,11 +10,13 @@ http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfd
     <sub-flow name="insertAccountDB" doc:name="insertAccountDB">
         <db:insert config-ref="GenericDatabaseConnector" doc:name="Database">
             <db:dynamic-query><![CDATA[INSERT INTO Account (accountNumber, phone, name, numberOfEmployees) VALUES ('#[payload.AccountNumber]', '#[payload.Phone]', '#[payload.Name]', '#[payload.NumberOfEmployees]')]]></db:dynamic-query>
+
         </db:insert>
     </sub-flow>
     <sub-flow name="deleteAccountFromDB" doc:name="deleteAccountFromDB">
         <db:delete config-ref="GenericDatabaseConnector" doc:name="Database">
             <db:parameterized-query><![CDATA[delete from Account where Name = #[payload.Name]]]></db:parameterized-query>
+
         </db:delete>
     </sub-flow>    
     <sub-flow name="selectAccountFromSalesforce" doc:name="selectAccountFromSalesforce">
