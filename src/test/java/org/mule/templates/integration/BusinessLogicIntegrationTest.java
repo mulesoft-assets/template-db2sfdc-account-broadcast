@@ -1,7 +1,9 @@
 package org.mule.templates.integration;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -42,6 +44,9 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 	
 	private BatchTestHelper helper;
 	private Map<String, Object> account;
+	private SubflowInterceptingChainLifecycleWrapper deleteAccountFromSalesforce;
+	private SubflowInterceptingChainLifecycleWrapper selectAccountFromSalesforce;
+	private SubflowInterceptingChainLifecycleWrapper deleteAccountFromDB;
 	
 	protected final Prober pollProber = new PollingProber(60000, 1000l);
 	
@@ -61,6 +66,16 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 		DBCREATOR.setUpDatabase();
 		
 		helper = new BatchTestHelper(muleContext);
+
+		selectAccountFromSalesforce = getSubFlow("selectAccountFromSalesforce");
+		selectAccountFromSalesforce.initialise();
+
+		deleteAccountFromDB = getSubFlow("deleteAccountFromDB");
+		deleteAccountFromDB.initialise();
+
+		deleteAccountFromSalesforce = getSubFlow("deleteAccountFromSalesforce");
+		deleteAccountFromSalesforce.initialise();
+
 		createAccountInDB();
 	}
 	
@@ -71,7 +86,9 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 		
 		final Map<String, Object> acc = new HashMap<String, Object>();
 		acc.put("Name", account.get("Name"));
+		acc.put("Id", account.get("Id"));
 		deleteAccountFromDB(acc);
+		deleteAccountFromSalesforce(acc);
 		
 		DBCREATOR.tearDownDataBase();
 	}
@@ -85,26 +102,33 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 		helper.awaitJobTermination(120 * 1000, 500);
 		helper.assertJobWasSuccessful();
 
-		SubflowInterceptingChainLifecycleWrapper subflow = getSubFlow("selectAccountFromSalesforce");
-		subflow.initialise();
-
-		MuleEvent event = subflow.process(getTestEvent(account, MessageExchangePattern.REQUEST_RESPONSE));
+		MuleEvent event = selectAccountFromSalesforce.process(getTestEvent(account, MessageExchangePattern.REQUEST_RESPONSE));
 		Map<String, Object> result = (Map<String, Object>) event.getMessage().getPayload();
 		log.info("selectAccountFromSalesforce result: " + result);
 
 		Assert.assertNotNull(result);
+		Assert.assertNotNull(result.get("Id"));
+
+		account.put("Id", result.get("Id"));
+
 		Assert.assertEquals("There should be matching account Name in Salesforce now", account.get("Name"), result.get("Name"));
 		Assert.assertEquals("There should be matching account AccountNumber in Salesforce now", account.get("AccountNumber"), result.get("AccountNumber"));
 		Assert.assertEquals("There should be matching account Phone in Salesforce now", account.get("Phone"), result.get("Phone"));
 	}
 
 	private void deleteAccountFromDB(final Map<String, Object> account) throws Exception {
-		final SubflowInterceptingChainLifecycleWrapper flow = getSubFlow("deleteAccountFromDB");
-		flow.initialise();
 
-		final MuleEvent event = flow.process(getTestEvent(account, MessageExchangePattern.REQUEST_RESPONSE));
+		final MuleEvent event = deleteAccountFromDB.process(getTestEvent(account, MessageExchangePattern.REQUEST_RESPONSE));
 		final Object result = event.getMessage().getPayload();
 		log.info("deleteAccountFromDB result: " + result);
+	}
+
+	private void deleteAccountFromSalesforce(final Map<String, Object> acc) throws Exception {
+
+		List<Object> idList = new ArrayList<Object>();
+		idList.add(acc.get("Id"));
+
+		deleteAccountFromSalesforce.process(getTestEvent(idList, MessageExchangePattern.REQUEST_RESPONSE));
 	}
 
 	private void createAccountInDB() throws Exception {

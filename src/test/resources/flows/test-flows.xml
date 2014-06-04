@@ -22,4 +22,11 @@ http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfd
     <sub-flow name="selectAccountFromSalesforce" doc:name="selectAccountFromSalesforce">
         <sfdc:query-single config-ref="Salesforce" query="SELECT Id, AccountNumber, Phone, Name, NumberOfEmployees FROM Account WHERE Name = '#[payload.Name]'" doc:name="Salesforce"/>
     </sub-flow>
+
+	<sub-flow name="deleteAccountFromSalesforce" doc:name="deleteAccountFromSalesforce">
+		<sfdc:delete config-ref="Salesforce" doc:name="Salesforce">
+			<sfdc:ids ref="#[payload]" />
+		</sfdc:delete>
+		<logger level="INFO" message="Remove Account from Salesforce result: #[payload]" doc:name="Logger"/>
+	</sub-flow>
 </mule>
