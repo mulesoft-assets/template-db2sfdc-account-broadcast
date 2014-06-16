@@ -112,8 +112,6 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 		account.put("Id", result.get("Id"));
 
 		Assert.assertEquals("There should be matching account Name in Salesforce now", account.get("Name"), result.get("Name"));
-		Assert.assertEquals("There should be matching account AccountNumber in Salesforce now", account.get("AccountNumber"), result.get("AccountNumber"));
-		Assert.assertEquals("There should be matching account Phone in Salesforce now", account.get("Phone"), result.get("Phone"));
 	}
 
 	private void deleteAccountFromDB(final Map<String, Object> account) throws Exception {
