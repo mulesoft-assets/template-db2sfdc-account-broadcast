@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -114,6 +116,7 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 
 		Assert.assertNotNull(result);
 		Assert.assertNotNull(result.get("Id"));
+		Assert.assertEquals(account.get("Industry"), result.get("Industry"));
 
 		account.put("Id", result.get("Id"));
 
@@ -146,11 +149,15 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 	}
 
 	private Map<String, Object> createDbAccount() {
+		DateTimeFormatter df = DateTimeFormat.forPattern("yyyy-MM-dd hh:mm:ss");		
+		System.out.println("bbb: " + df.print(new Date().getTime() + 24 * 60 * 60 * 1000));
 		return ObjectBuilder.anAccount()
 				.with("Name", ACCOUNT_NAME + System.currentTimeMillis())
 				.with("AccountNumber", ACCOUNT_NUMBER)
 				.with("Phone", ACCOUNT_PHONE)
 				.with("NumberOfEmployees", 99)
+				.with("Industry", "Education")
+				.with("LastModifiedDate", df.print(new Date().getTime() + 24 * 60 * 60 * 1000))
 				.build();
 	}
 }
