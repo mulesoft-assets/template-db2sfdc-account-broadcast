@@ -6,7 +6,7 @@ xmlns="http://www.mulesoft.org/schema/mule/core"
 xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc"
 xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" 
 xmlns:spring="http://www.springframework.org/schema/beans" 
-version="EE-3.5.0" 
+version="EE-3.5.2" 
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 xsi:schemaLocation="http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
@@ -26,10 +26,9 @@ Here you should:
             <fixed-frequency-scheduler frequency="${poll.frequencyMillis}" startDelay="${poll.startDelayMillis}"/>
             <watermark variable="lastQueryDate" default-expression="${watermark.default.expression}" selector="MAX" selector-expression="#[payload.LastModifiedDate]"/>
             <db:select config-ref="GenericDatabaseConnector" doc:name="query database for accounts">
-                <db:parameterized-query><![CDATA[SELECT AccountNumber, Description, Id, Name, NumberOfEmployees, Phone, Type, LastModifiedDate FROM Account WHERE LastModifiedDate > #[flowVars['lastQueryDate']] ORDER BY LastModifiedDate ASC]]></db:parameterized-query>
-
-
+                <db:parameterized-query><![CDATA[SELECT AccountNumber, Description, Id, Name, NumberOfEmployees, Phone, Type, Industry, LastModifiedDate FROM Account WHERE LastModifiedDate > #[flowVars['lastQueryDate']] ORDER BY LastModifiedDate ASC]]></db:parameterized-query>
             </db:select>
+
         </poll>
         <batch:execute name="syncAccountsBatch" doc:name="trigger syncAccountsBatch"/>
         <exception-strategy ref="defaultChoiceExceptionStrategy" doc:name="Reference Exception Strategy"/>        
