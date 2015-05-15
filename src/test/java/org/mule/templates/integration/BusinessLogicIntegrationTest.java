@@ -12,7 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.After;
@@ -36,7 +37,7 @@ import com.mulesoft.module.batch.BatchTestHelper;
  */
 public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 
-	private static final Logger log = Logger.getLogger(BusinessLogicIntegrationTest.class);
+	private static final Logger log = LogManager.getLogger(BusinessLogicIntegrationTest.class);
 
 	protected static final String POLL_FLOW_NAME = "triggerFlow";
 	protected static final int TIMEOUT = 60;

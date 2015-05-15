@@ -15,11 +15,12 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.apache.log4j.Logger;
 
 public class MySQLDbCreator {
-	private static final Logger log = Logger.getLogger(MySQLDbCreator.class);
+	private static final Logger log = LogManager.getLogger(MySQLDbCreator.class);
 	private String databaseName;
 	private String databaseUrl;
 	private String databaseWithNameUrl;
