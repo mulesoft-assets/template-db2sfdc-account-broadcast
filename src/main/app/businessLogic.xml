@@ -1,60 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" 
-	xmlns:db="http://www.mulesoft.org/schema/mule/db" 
-	xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
-	xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" 
-	xmlns="http://www.mulesoft.org/schema/mule/core"
+<mule xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml" xmlns:weave="http://www.mulesoft.org/schema/mule/ee/weave" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+	xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	version="EE-3.6.2"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xmlns:json="http://www.mulesoft.org/schema/mule/json"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.7.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:json="http://www.mulesoft.org/schema/mule/json"
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
-http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd">
-    <data-mapper:config name="transform_Database_Account_To_Salesforce_Account" transformationGraphPath="transform_database_account_to_salesforce_account.grf" doc:name="transform_Database_Account_To_Salesforce_Account"/>
+http://www.mulesoft.org/schema/mule/ee/weave http://www.mulesoft.org/schema/mule/ee/weave/current/weave.xsd
+http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd">
 	<batch:job name="syncAccountsBatch">
 		<batch:threading-profile poolExhaustedAction="WAIT" />
 		<batch:process-records>
 			<batch:step name="foreachAccountInAGetAccountInBStep">
 				<enricher source="#[payload]" target="#[recordVars['accountInB']]"
 					doc:name="store result in record var 'accountInB'">
-					<sfdc:query-single config-ref="Salesforce"
-						query="SELECT Id FROM Account WHERE Name = '#[payload['Name']]'"
-						doc:name="Query Account in Salesforce" />
+                    <sfdc:query-single config-ref="Salesforce" query="SELECT Id FROM Account WHERE Name = '#[payload['Name']]'" doc:name="query Account in Salesforce"/>
 				</enricher>
 			</batch:step>
 			<batch:step name="foreachAccountInAUpsertAccountInBStep">
-                <data-mapper:transform config-ref="transform_Database_Account_To_Salesforce_Account" doc:name="Transform Database Account To Salesforce Account"/>
-				<expression-component doc:name="Set ID for upsert and remove unnecessary fields and map field types"><![CDATA[if (recordVars['accountInB'] instanceof NullPayload) {
+				<expression-component doc:name="set ID for upsert"><![CDATA[if (recordVars['accountInB'] == null) {
 	// Remove ID as it is an insert
 	payload.remove('Id')
 } else {
 	// Add target system ID as it is an update
     payload.put('Id', recordVars['accountInB']['Id'])
 }
-
-payload.remove('LastModifiedDate');
-
-// TODO - This is necessary due to: https://www.mulesoft.org/jira/browse/CLDCONNECT-1248
-payload.put('NumberOfEmployees', Integer.parseInt(payload['NumberOfEmployees']) );]]></expression-component>
+]]></expression-component>
 
 				<batch:commit size="200" doc:name="Batch Commit">
-                    <sfdc:upsert config-ref="Salesforce" externalIdFieldName="Id" type="Account" doc:name="Upsert Accounts in Salesforce">
+                    <weave:transform-message doc:name="DB account to SFDC account">
+                        <weave:set-payload resource="classpath:DBAccountToSFDCAccount.wev"></weave:set-payload>
+                    </weave:transform-message>
+                    <sfdc:upsert config-ref="Salesforce" externalIdFieldName="Id" type="Account" doc:name="upsert Accounts in Salesforce">
                         <sfdc:objects ref="#[payload]"/>
                     </sfdc:upsert>
-                    <logger message="Upsert result: #[payload]" level="ERROR" doc:name="Log Result"/>
+                    <logger message="Upsert result: #[payload]" level="ERROR" doc:name="log Result"/>
 
 				</batch:commit>
 			</batch:step>
 		</batch:process-records>
 		<batch:on-complete>
 			<json:object-to-json-transformer
-				doc:name="Transform BatchJobInstance to JSON" />
-			<logger level="INFO" doc:name="Log 'Migration process has finished'"
+				doc:name="transform BatchJobInstance to JSON" />
+			<logger level="INFO" doc:name="log 'Migration process has finished'"
 				message="Migration process has finished: #[payload]" />
 		</batch:on-complete>
 	</batch:job>

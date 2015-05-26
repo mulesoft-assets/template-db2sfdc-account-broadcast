@@ -21,10 +21,6 @@
 	<!-- Mule classes -->
     <Logger name="org.mule" level="info"/>
     <Logger name="com.mulesoft" level="info"/>
-    
-    <!-- Reduce DM verbosity -->
-    <Logger name="org.jetel" level="warn"/>
-    <Logger name="Tracking" level="warn"/>
    
     <Root level="info">
       <AppenderRef ref="STDOUT"/>
