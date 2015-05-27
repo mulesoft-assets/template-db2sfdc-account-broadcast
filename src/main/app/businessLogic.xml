@@ -19,21 +19,12 @@ http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/
 		<batch:threading-profile poolExhaustedAction="WAIT" />
 		<batch:process-records>
 			<batch:step name="foreachAccountInAGetAccountInBStep">
-				<enricher source="#[payload]" target="#[recordVars['accountInB']]"
-					doc:name="store result in record var 'accountInB'">
+				<enricher source="#[payload == null ? null : payload.Id]" target="#[payload.Id]"
+					doc:name="set Id from matching account">
                     <sfdc:query-single config-ref="Salesforce" query="SELECT Id FROM Account WHERE Name = '#[payload['Name']]'" doc:name="query Account in Salesforce"/>
 				</enricher>
 			</batch:step>
 			<batch:step name="foreachAccountInAUpsertAccountInBStep">
-				<expression-component doc:name="set ID for upsert"><![CDATA[if (recordVars['accountInB'] == null) {
-	// Remove ID as it is an insert
-	payload.remove('Id')
-} else {
-	// Add target system ID as it is an update
-    payload.put('Id', recordVars['accountInB']['Id'])
-}
-]]></expression-component>
-
 				<batch:commit size="200" doc:name="Batch Commit">
                     <weave:transform-message doc:name="DB account to SFDC account">
                         <weave:set-payload resource="classpath:DBAccountToSFDCAccount.wev"></weave:set-payload>
