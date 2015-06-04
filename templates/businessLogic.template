@@ -27,24 +27,9 @@ http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/
 			<batch:step name="foreachAccountInAUpsertAccountInBStep">
 				<batch:commit size="200" doc:name="Batch Commit">
 
-
-		
-		    <weave:transform-message doc:name="DB account to SFDC account">
-		        <weave:set-payload ><![CDATA[%weave 0.1
-%input payload application/java
-%output application/java
----
-payload map
-{
-	AccountNumber: $.AccountNumber,
-	Id: $.Id,
-	Name: $.Name,
-	NumberOfEmployees : $.NumberOfEmployees as :number,
-	Industry: $.Industry
-}]]></weave:set-payload>
-			</weave:transform-message>
-		
-		                
+## Fragment Mapping DB Account to SFDC Account
+#evaluate( $fragment_mapping_db_account_to_sfdc_account )
+                
                     <sfdc:upsert config-ref="Salesforce" externalIdFieldName="Id" type="Account" doc:name="upsert Accounts in Salesforce">
                         <sfdc:objects ref="#[payload]"/>
                     </sfdc:upsert>
