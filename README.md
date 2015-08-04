@@ -153,7 +153,7 @@ If it is required to connect to a different Database there should be provided th
 + sfdc.a.username `joan.baez@orgb`
 + sfdc.a.password `JoanBaez456`
 + sfdc.a.securityToken `ces56arl7apQs56XTddf34X`
-+ sfdc.a.url `https://login.salesforce.com/services/Soap/u/26.0`
++ sfdc.a.url `https://login.salesforce.com/services/Soap/u/32.0`
 
 # API Calls <a name="apicalls"/>
 Salesforce imposes limits on the number of API Calls that can be made. Therefore calculating this amount may be an important factor to consider. Account Broadcast Template calls to the API can be calculated using the formula:

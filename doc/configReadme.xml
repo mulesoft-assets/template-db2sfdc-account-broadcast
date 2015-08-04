@@ -43,7 +43,7 @@ If it is required to connect to a different Database there should be provided th
 + sfdc.a.username `joan.baez@orgb`
 + sfdc.a.password `JoanBaez456`
 + sfdc.a.securityToken `ces56arl7apQs56XTddf34X`
-+ sfdc.a.url `https://login.salesforce.com/services/Soap/u/26.0`
++ sfdc.a.url `https://login.salesforce.com/services/Soap/u/32.0`
 ]]>
 		</section>
 		<section id="api_calls">
