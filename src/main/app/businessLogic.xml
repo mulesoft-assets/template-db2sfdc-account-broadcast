@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
 	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
 	xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.7.0"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.7.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:json="http://www.mulesoft.org/schema/mule/json"
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
@@ -12,20 +12,18 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
-http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
-http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
 	<batch:job name="syncAccountsBatch">
 		<batch:threading-profile poolExhaustedAction="WAIT" />
 		<batch:process-records>
-			<batch:step name="foreachAccountInAGetAccountInBStep">
+			<batch:step name="getAccountInSalesforceStep">
 				<enricher source="#[payload == null ? null : payload.Id]" target="#[payload.Id]"
-					doc:name="set Id from matching account">
+					doc:name="store result in payload Id">
                     <sfdc:query-single config-ref="Salesforce" query="SELECT Id FROM Account WHERE Name = '#[payload['Name']]'" doc:name="query Account in Salesforce"/>
 				</enricher>
 			</batch:step>
-			<batch:step name="foreachAccountInAUpsertAccountInBStep">
-				<batch:commit size="200" doc:name="Batch Commit">
+			<batch:step name="upsertAccountsInSalesforceStep">
+				<batch:commit size="${page.size}" doc:name="Batch Commit">
                     <dw:transform-message doc:name="DB account to SFDC account">
                         <dw:set-payload><![CDATA[%dw 1.0
 %output application/java
@@ -33,9 +31,10 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
 payload map
 {
 	AccountNumber: $.AccountNumber,
+	Description: $.Description,
 	Id: $.Id,
 	Name: $.Name,
-	NumberOfEmployees : $.NumberOfEmployees as :number,
+	NumberOfEmployees: $.NumberOfEmployees as :number {class: "java.lang.Integer"} default 0,
 	Industry: $.Industry
 }]]></dw:set-payload>
                     </dw:transform-message>

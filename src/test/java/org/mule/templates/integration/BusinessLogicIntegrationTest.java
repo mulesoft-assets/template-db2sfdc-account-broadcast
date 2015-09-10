@@ -37,7 +37,7 @@ import com.mulesoft.module.batch.BatchTestHelper;
  */
 public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 
-	private static final Logger log = LogManager.getLogger(BusinessLogicIntegrationTest.class);
+	private static final Logger LOGGER = LogManager.getLogger(BusinessLogicIntegrationTest.class);
 
 	protected static final String POLL_FLOW_NAME = "triggerFlow";
 	protected static final int TIMEOUT = 60;
@@ -48,14 +48,13 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 
 	private static final String PATH_TO_TEST_PROPERTIES = "./src/test/resources/mule.test.properties";
 	private static final String PATH_TO_SQL_SCRIPT = "src/main/resources/account.sql";
-	private static final String DATABASE_NAME = "SFDC2DBAccountBroadcast" + new Long(new Date().getTime()).toString();
+	private static final String DATABASE_NAME = "DB2SFDCAccountBroadcast" + new Long(new Date().getTime()).toString();
 	private static final MySQLDbCreator DBCREATOR = new MySQLDbCreator(DATABASE_NAME, PATH_TO_SQL_SCRIPT, PATH_TO_TEST_PROPERTIES);
 	
 	private BatchTestHelper helper;
 	private Map<String, Object> account;
 	private SubflowInterceptingChainLifecycleWrapper deleteAccountFromSalesforce;
 	private SubflowInterceptingChainLifecycleWrapper selectAccountFromSalesforce;
-	private SubflowInterceptingChainLifecycleWrapper deleteAccountFromDB;
 	
 	protected final Prober pollProber = new PollingProber(60000, 1000l);
 	
@@ -79,9 +78,6 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 		selectAccountFromSalesforce = getSubFlow("selectAccountFromSalesforce");
 		selectAccountFromSalesforce.initialise();
 
-		deleteAccountFromDB = getSubFlow("deleteAccountFromDB");
-		deleteAccountFromDB.initialise();
-
 		deleteAccountFromSalesforce = getSubFlow("deleteAccountFromSalesforce");
 		deleteAccountFromSalesforce.initialise();
 
@@ -96,7 +92,6 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 		final Map<String, Object> acc = new HashMap<String, Object>();
 		acc.put("Name", account.get("Name"));
 		acc.put("Id", account.get("Id"));
-		deleteAccountFromDB(acc);
 		deleteAccountFromSalesforce(acc);
 		
 		DBCREATOR.tearDownDataBase();
@@ -113,22 +108,16 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 
 		MuleEvent event = selectAccountFromSalesforce.process(getTestEvent(account, MessageExchangePattern.REQUEST_RESPONSE));
 		Map<String, Object> result = (Map<String, Object>) event.getMessage().getPayload();
-		log.info("selectAccountFromSalesforce result: " + result);
+		LOGGER.info("selectAccountFromSalesforce result: " + result);
 
 		Assert.assertNotNull(result);
 		Assert.assertNotNull(result.get("Id"));
 		Assert.assertEquals(account.get("Industry"), result.get("Industry"));
+		Assert.assertEquals(account.get("AccountNumber"), result.get("AccountNumber"));
 
 		account.put("Id", result.get("Id"));
 
 		Assert.assertEquals("There should be matching account Name in Salesforce now", account.get("Name"), result.get("Name"));
-	}
-
-	private void deleteAccountFromDB(final Map<String, Object> account) throws Exception {
-
-		final MuleEvent event = deleteAccountFromDB.process(getTestEvent(account, MessageExchangePattern.REQUEST_RESPONSE));
-		final Object result = event.getMessage().getPayload();
-		log.info("deleteAccountFromDB result: " + result);
 	}
 
 	private void deleteAccountFromSalesforce(final Map<String, Object> acc) throws Exception {
@@ -146,7 +135,7 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 
 		MuleEvent event = flow.process(getTestEvent(account, MessageExchangePattern.REQUEST_RESPONSE));
 		Object result = event.getMessage().getPayload();
-		log.info("insertAccountDB result: " + result);
+		LOGGER.info("insertAccountDB result: " + result);
 	}
 
 	private Map<String, Object> createDbAccount() {

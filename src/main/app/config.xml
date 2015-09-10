@@ -5,7 +5,7 @@
 xmlns="http://www.mulesoft.org/schema/mule/core" 
 xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc"
-version="EE-3.7.0" 
+version="EE-3.7.1" 
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 xsi:schemaLocation="http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
@@ -18,7 +18,7 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
     
     <db:generic-config name="GenericDatabaseConnector" url="${database.url}" driverClassName="com.mysql.jdbc.Driver" doc:name="Generic Database Configuration" doc:description="DB instance."/>
 
-    <sfdc:config name="Salesforce" username="${sfdc.a.username}" password="${sfdc.a.password}" securityToken="${sfdc.a.securityToken}" url="${sfdc.a.url}" doc:name="Salesforce" doc:description="One of your SalesForce instances, from this is were changes are going to be synced.">
+    <sfdc:config name="Salesforce" username="${sfdc.username}" password="${sfdc.password}" securityToken="${sfdc.securityToken}" url="${sfdc.url}" doc:name="Salesforce" doc:description="One of your SalesForce instances, from this is were changes are going to be synced.">
 		<sfdc:connection-pooling-profile initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW"/>
     </sfdc:config>
 

@@ -26,13 +26,13 @@ Note that using this template is subject to the conditions of this [License Agre
 Please review the terms of the license before downloading and using this template. In short, you are allowed to use the template for free with Mule ESB Enterprise Edition, CloudHub, or as a trial in Anypoint Studio.
 
 # Use Case <a name="usecase"/>
-As a Salesforce admin I want to synchronize accounts from Database to Salesforce organization.
+As a Salesforce admin I want to synchronize accounts between Database and Salesforce organization.
 
-This Template should serve as a foundation for the process of broadcasting accounts from Database to Salesfoce instance. Everytime there is a new account or a change in an already existing one, the integration will poll for changes in Database source instance and it will be responsible for updating the account in the Salesforce.
+This Template should serve as a foundation for the process of broadcasting accounts from Database to Salesfoce instance. Everytime there is a new account or a change in an already existing one, the integration will poll for changes in Database source instance and it will be responsible for upserting the account in the Salesforce.
 
 Requirements have been set not only to be used as examples, but also to establish a starting point to adapt your integration to your requirements.
 
-As implemented, this Anypoint Template leverage the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing). The batch job is divided in Input, Process and On Complete stages. The integration is triggered by a poll defined in the flow that is going to trigger the application, querying newest Database updates/creations matching a filter criteria and executing the batch job. During the Process stage, each Database Account will be filtered depending on, if it has an existing matching user in the Salesforce. The last step of the Process stage will group the accounts and create/update them in Salesforce. Finally during the On Complete stage the Anypoint Template will logoutput statistics data into the console.
+As implemented, this Anypoint Template leverage the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing). The batch job is divided in Input, Process and On Complete stages. The integration is triggered by a poll defined in the flow that is going to trigger the application, querying newest Database updates/creations matching a filter criteria and executing the batch job. During the Process stage, each Database Account will be filtered depending on, if it has an existing matching Account in the Salesforce. The last step of the Process stage will group the accounts and create/update them in Salesforce. Finally during the On Complete stage the Anypoint Template will logoutput statistics data into the console.
 
 # Considerations <a name="considerations"/>
 
@@ -40,7 +40,7 @@ To make this Anypoint Template run, there are certain preconditions that must be
 **Failling to do so could lead to unexpected behavior of the template.**
 
 This particular Anypoint Template illustrate the broadcast use case between Database and a Salesforce, thus it requires a Database instance to work.
-The Anypoint Template comes packaged with a SQL script to create the Database table that uses. It is the user responsability to use that script to create the table in an available schema and change the configuration accordingly. The SQL script file can be found in [src/main/resources/account.sql] (../master/src/main/resources/account.sql)
+The Anypoint Template comes packaged with a SQL script to create the Database table that uses. It is the user responsability to use that script to create the table in an available schema and change the configuration accordingly. The SQL script file can be found in [src/main/resources/account.sql](../master/src/main/resources/account.sql)
 
 ## DB Considerations <a name="dbconsiderations"/>
 
@@ -140,20 +140,24 @@ Mule Studio provides you with really easy way to deploy your Template directly t
 In order to use this Mule Anypoint Template you need to configure properties (Credentials, configurations, etc.) either in properties file or in CloudHub as Environment Variables. Detail list with examples:
 ### Application configuration
 **Application configuration**
+
++ page.size `200`
 + poll.frequencyMillis `60000`
 + poll.startDelayMillis `0`
-+ watermark.defaultExpression `YESTERDAY`
++ watermark.default.expression `YESTERDAY`
 
 **Database Connector configuration**
+
 + database.url=jdbc:mysql://192.168.224.130:3306/mule?user=mule&password=mule
 
-If it is required to connect to a different Database there should be provided the jar for the library and changed the value of that field in the connector.
+**Note:** If it is required to connect to a different Database there should be provided the jar for the library and changed the value of that field in the connector.
 
 **Salesforce Connector configuration**
-+ sfdc.a.username `joan.baez@orgb`
-+ sfdc.a.password `JoanBaez456`
-+ sfdc.a.securityToken `ces56arl7apQs56XTddf34X`
-+ sfdc.a.url `https://login.salesforce.com/services/Soap/u/32.0`
+
++ sfdc.username `joan.baez@orgb`
++ sfdc.password `JoanBaez456`
++ sfdc.securityToken `ces56arl7apQs56XTddf34X`
++ sfdc.url `https://login.salesforce.com/services/Soap/u/32.0`
 
 # API Calls <a name="apicalls"/>
 Salesforce imposes limits on the number of API Calls that can be made. Therefore calculating this amount may be an important factor to consider. Account Broadcast Template calls to the API can be calculated using the formula:
@@ -191,12 +195,13 @@ Functional aspect of the Anypoint Template is implemented on this XML, directed 
 
 1. Job execution is invoked from triggerFlow (endpoints.xml) everytime there is a new query executed asking for created/updated Accounts.
 2. During the Process stage, each Database Account will be filtered depending on, if it has an existing matching Account in the Salesforce.
-3. The last step of the Process stage will group the Accounts and create/update them in Salesforce. Finally during the On Complete stage the Anypoint Template will log output statistics data into the console.
+3. The last step of the Process stage will group the Accounts and create/update them in Salesforce.
+4. Finally during the On Complete stage the Anypoint Template will log output statistics data into the console.
 
 
 
 ## endpoints.xml<a name="endpointsxml"/>
-This is file is conformed by a Flow containing the Poll that will periodically query Database for updated/created Accounts that meet the defined criteria in the query. And then executing the batch job process with the query results.
+This file is conformed by a Flow containing the Poll that will periodically query Database for updated/created Accounts that meet the defined criteria in the query. And then executing the batch job process with the query results.
 
 
 
