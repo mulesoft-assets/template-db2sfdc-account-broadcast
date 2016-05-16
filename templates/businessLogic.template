@@ -1,49 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<mule xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml" xmlns:weave="http://www.mulesoft.org/schema/mule/ee/weave" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
-	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
-	xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.7.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:json="http://www.mulesoft.org/schema/mule/json"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
-http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
-http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
-http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
-http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
-http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
-http://www.mulesoft.org/schema/mule/ee/weave http://www.mulesoft.org/schema/mule/ee/weave/current/weave.xsd
-http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd">
-	<batch:job name="syncAccountsBatch">
-		<batch:threading-profile poolExhaustedAction="WAIT" />
-		<batch:process-records>
-			<batch:step name="foreachAccountInAGetAccountInBStep">
-				<enricher source="#[payload == null ? null : payload.Id]" target="#[payload.Id]"
-					doc:name="set Id from matching account">
-                    <sfdc:query-single config-ref="Salesforce" query="SELECT Id FROM Account WHERE Name = '#[payload['Name']]'" doc:name="query Account in Salesforce"/>
-				</enricher>
-			</batch:step>
-			<batch:step name="foreachAccountInAUpsertAccountInBStep">
-				<batch:commit size="200" doc:name="Batch Commit">
-
-## Fragment Mapping DB Account to SFDC Account
-#evaluate( $fragment_mapping_db_account_to_sfdc_account )
-                
-                    <sfdc:upsert config-ref="Salesforce" externalIdFieldName="Id" type="Account" doc:name="upsert Accounts in Salesforce">
-                        <sfdc:objects ref="#[payload]"/>
-                    </sfdc:upsert>
-                    <logger message="Upsert result: #[payload]" level="ERROR" doc:name="log Result"/>
-
-				</batch:commit>
-			</batch:step>
-		</batch:process-records>
-		<batch:on-complete>
-			<json:object-to-json-transformer
-				doc:name="transform BatchJobInstance to JSON" />
-			<logger level="INFO" doc:name="log 'Migration process has finished'"
-				message="Migration process has finished: #[payload]" />
-		</batch:on-complete>
-	</batch:job>
-
-</mule>
+##
+## Pattern Broadcast beginning
+##
+## Batch Job definition (pattern argument)
+##
+#set( $batch_name = $fragment_element_label_business_logic_broadcast_account_batch )
+#set( $lookup_entities = $fragment_container_batchstep_lookup_account_sfdc )
+#set( $create_upsert_entities = $fragment_container_batchstep_sfdc_upsert_accounts_in_b_step )
+#set( $on_complete = $fragment_processors_processorgroup_broadcast_on_complete )
+#set( $batch_job = "#evaluate( $fragment_container_batchjob_broadcast )" )
+##
+#evaluate( $fragment_pattern_broadcast_business_logic )
