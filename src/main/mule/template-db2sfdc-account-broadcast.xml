@@ -1,18 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
-	xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
-	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
 http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
 	<db:config name="Database_Config" doc:name="Database Config" doc:id="59194256-5c2f-49ea-8146-c46fbbf41c61" >
 		<db:my-sql-connection host="${db.host}" port="${db.port}" user="${db.user}" password="${db.password}" database="${db.name}" />
 	</db:config>
 	<salesforce:sfdc-config name="Salesforce_Sfdc_config" doc:name="Salesforce Sfdc config" doc:id="97583da0-5499-4f2e-a610-5f6568d7e3c6" >
-		<salesforce:basic-connection username="${sfdc.username}" password="${sfdc.password}" securityToken="${sfdc.securityToken}" url="${sfdc.url}" />
+		<salesforce:basic-connection username="${sfdc.username}" password="${sfdc.password}" securityToken="${sfdc.securityToken}"/>
 	</salesforce:sfdc-config>
+	<os:object-store name="watermarkStore" persistent="true" doc:name="Object store"/>
+
 	<configuration-properties file="mule-artifact.properties" doc:name="Configuration properties" doc:id="ca514625-7559-4c4d-a352-9acbc3a331dc" />
 	<configuration-properties file="common.properties" doc:name="Configuration properties" doc:id="77c4ebce-f817-4dff-99ad-6d2e76512d04" />
 	<configuration-properties file="mule.${mule.env}.properties" doc:name="Configuration properties" doc:id="34a99db6-7c63-46ba-89f5-fa5d1fed399e" />
@@ -23,9 +26,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 				<fixed-frequency frequency="${scheduler.frequency}" startDelay="${scheduler.startDelay}"/>
 			</scheduling-strategy>
 		</scheduler>
-		<db:select config-ref="Database_Config" doc:name="Query database for accounts" doc:id="bb7d5e46-7258-4a59-8c44-9e4101ceb779" >
-			<db:sql >SELECT AccountNumber, Description, Industry, Name, NumberOfEmployees, Phone, Type, LastModifiedDate FROM Account</db:sql>
-		</db:select>
+		<flow-ref doc:name="watermarkingFlow" doc:id="1177be5d-af9d-42a8-91cd-68200e7396a9" name="watermarkingFlow"/>
 		<batch:job jobName="syncAccountsBatch" doc:id="5e00c5b5-ab34-4418-8af4-381a73424370" >
 			<batch:process-records >
 				<batch:step name="getAccountInSalesforceStep" doc:id="351fd5d6-6cee-4269-afb3-f9a1b57cb079" >
@@ -74,4 +75,17 @@ payload map
 			</batch:on-complete>
 		</batch:job>
 	</flow>
+	<flow name="watermarkingFlow">
+		<os:retrieve key="watermark" objectStore="watermarkStore" target="lastQueryTimestamp" doc:name="Retrieve lastQueryTimestamp">
+    	    <os:default-value><![CDATA[${watermark.default.expression}]]></os:default-value>
+	    </os:retrieve>
+		<db:select config-ref="Database_Config" doc:name="Query database for accounts" doc:id="bb7d5e46-7258-4a59-8c44-9e4101ceb779" >
+			<db:sql >SELECT AccountNumber, Description, Industry, Name, NumberOfEmployees, Phone, Type, LastModifiedDate FROM Account WHERE LastModifiedDate &gt; :lastModifiedDate</db:sql>
+			<db:input-parameters ><![CDATA[#[{'lastModifiedDate': vars.lastQueryTimestamp}]]]></db:input-parameters>
+		</db:select>
+    	<os:store key="watermark" failIfPresent="false" failOnNullValue="false" objectStore="watermarkStore" doc:name="Store lastQueryTimestamp">
+        	<os:value>#[max(payload map $.LastModifiedDate)]</os:value>
+    	</os:store>
+	</flow>
+
 </mule>
