@@ -1,7 +1,9 @@
 {
-  "domain": "default",
   "configs": [
-    "template-db2sfdc-account-broadcast.xml"
+    "businessLogic.xml",
+    "config.xml",
+    "endpoints.xml",
+    "errorHandling.xml"
   ],
   "redeploymentEnabled": true,
   "name": "template-db2sfdc-account-broadcast",

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" 
+xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch" 
+	xmlns="http://www.mulesoft.org/schema/mule/core" 
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	
+	
+	<flow name="businesLogicFlow" doc:id="b5084d98-546e-42f5-a031-f4ebe8dbe78f" >
+		<batch:job jobName="syncAccountsBatch" doc:id="5e00c5b5-ab34-4418-8af4-381a73424370" >
+			<batch:process-records >
+				<batch:step name="getAccountInSalesforceStep" doc:id="351fd5d6-6cee-4269-afb3-f9a1b57cb079" >
+					<salesforce:query-single config-ref="Salesforce_Sfdc_config" doc:name="Query Account in Salesforce" doc:id="c87a5909-7aa8-45d0-a17d-7126078e2674" target="sfdcId">
+						<salesforce:salesforce-query >SELECT Id FROM Account WHERE Name = ':name'</salesforce:salesforce-query>
+						<salesforce:parameters ><![CDATA[#[output applicaton/java
+---
+{
+	"name" : payload.Name
+}]]]></salesforce:parameters>
+					</salesforce:query-single>
+					<ee:transform doc:name="Add SFDC ID to payload" doc:id="a79f7867-069e-4de8-ac61-3966d27e68d2" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload ++ vars.sfdcId]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</batch:step>
+				<batch:step name="upsertAccountsInSalesforceStep" doc:id="6d6dc09e-3822-42d1-82d8-875e223a85fd" >
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="42b7200f-55a0-46c9-b6ca-df1a716c306e" size="${page.size}">
+						<ee:transform doc:name="DB account to SFDC account" doc:id="376fc102-43e2-4243-ab9f-c0a7b60c0410" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload map
+{
+	AccountNumber: $.AccountNumber,
+	Description: $.Description,
+	Id: $.Id,
+	Name: $.Name,
+	NumberOfEmployees: $.NumberOfEmployees as Number default 0,
+	Industry: $.Industry
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<salesforce:upsert-bulk doc:name="Upsert bulk Accounts in Salesforce" doc:id="45ed5dc1-5d86-4513-af0e-4064191ffdf2" config-ref="Salesforce_Sfdc_config" type="Account" externalIdFieldName="Id"/>
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+						<ee:transform doc:name="Prepare migration result" doc:id="c84b4bc4-5a65-41c1-9d0c-f1ebd3d8db7a">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+---
+"Migration Report: \n"
+ 
+++ "\n Time [milliseconds]: " 		++ payload.elapsedTimeInMillis
+++ "\n Total Records: "				++ payload.totalRecords
+++ "\n Successful Records: "		++ payload.successfulRecords
+++ "\n Failed Records: "			++ payload.failedRecords
+++ "\n Loaded Records: "			++ payload.loadedRecords
+++ "\n Processed Records: " 		++ payload.processedRecords]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+				<logger level="INFO" doc:name="Migration process has finished!" doc:id="b7575d38-7dbd-4602-9186-1bbb25234896" message="Migration process has finished: #[payload]" />
+			</batch:on-complete>
+		</batch:job>
+	</flow>
+	
+
+</mule>
