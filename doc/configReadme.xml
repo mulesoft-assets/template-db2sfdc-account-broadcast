@@ -7,11 +7,11 @@
 		<section id="use_case">
 As a Salesforce admin I want to synchronize accounts between Database and Salesforce organization.
 
-This Template should serve as a foundation for the process of broadcasting accounts from Database to Salesfoce instance. Everytime there is a new account or a change in an already existing one, the integration will poll for changes in Database source instance and it will be responsible for upserting the account in the Salesforce.
+This Template should serve as a foundation for the process of broadcasting accounts from Database to Salesfoce instance. Everytime there is new account or a change in an already existing one, the integration will poll for changes in Database source instance and it will be responsible for upserting the account in the Salesforce.
 
 Requirements have been set not only to be used as examples, but also to establish a starting point to adapt your integration to your requirements.
 
-As implemented, this Anypoint Template leverage the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing). The batch job is divided in Input, Process and On Complete stages. The integration is triggered by a poll defined in the flow that is going to trigger the application, querying newest Database updates/creations matching a filter criteria and executing the batch job. During the Process stage, each Database Account will be filtered depending on, if it has an existing matching Account in the Salesforce. The last step of the Process stage will group the accounts and create/update them in Salesforce. Finally during the On Complete stage the Anypoint Template will logoutput statistics data into the console.
+As implemented, this Anypoint Template leverages the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing). The batch job is divided in Process and On Complete stages. The integration is triggered by a scheduler defined in the flow that is going to trigger the application, querying newest Database updates/creations matching a filter criteria and executing the batch job. During the Process stage, each Database Account will be filtered depending on, if it has an existing matching Account in the Salesforce. The last step of the Process stage will group the accounts and create/update them in Salesforce. Finally during the On Complete stage the Anypoint Template will logoutput statistics data into the console.
 		</section>
 		<section id="considerations">
 <![CDATA[
@@ -80,9 +80,9 @@ The second one we'll call it **watermarking** flow. This one contains watermarki
 		<section id="default_business_logic_xml">
 		<![CDATA[
 Functional aspect of the Anypoint Template is implemented on this XML, directed by a batch job that will be responsible for creations/updates. 
-The severeal message processors constitute four high level actions that fully implement the logic of this Anypoint Template:
+The several message processors constitute four high level actions that fully implement the logic of this Anypoint Template:
 
-1. Job execution is invoked from SchedulerFlow (endpoints.xml) everytime there is a new query executed asking for created/updated Accounts.
+1. Job execution is invoked from SchedulerFlow (endpoints.xml) everytime there is new query executed asking for created/updated Accounts.
 2. During the Process stage, each Database Account will be filtered depending on, if it has an existing matching Account in the Salesforce.
 3. The last step of the Process stage will group the Accounts and create/update them in Salesforce.
 4. Finally during the On Complete stage the Anypoint Template will log output statistics data into the console.
