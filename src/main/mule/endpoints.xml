@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
 	xmlns:os="http://www.mulesoft.org/schema/mule/os"
-	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" 
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" 
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xsi:schemaLocation="
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 <flow name="schedulerFlow" doc:id="aff4106d-d2f6-4366-940a-a380dcb1cf73" >
 	<scheduler doc:name="Scheduler" doc:id="58b7c776-fbee-4753-9bea-f6cc3e037efd" >
 		<scheduling-strategy >
@@ -24,14 +25,24 @@ http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/cu
 </flow>
 <flow name="watermarkingFlow">
 		<os:retrieve key="watermark" objectStore="watermarkStore" target="lastQueryTimestamp" doc:name="Retrieve lastQueryTimestamp">
-    	    <os:default-value><![CDATA[${watermark.default.expression}]]></os:default-value>
+    	    <os:default-value><![CDATA[#[${watermark.default.expression}]]]></os:default-value>
 	    </os:retrieve>
+		<ee:transform doc:name="Prepare sqldate" doc:id="2a034efe-14c2-470b-b673-a5f2d5e414ea" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	sqldate:   ((vars.lastQueryTimestamp as DateTime)  >> |+00:00|) as String { format: "YYYY-MM-dd HH:mm:ss" }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<db:select config-ref="Database_Config" doc:name="Query database for accounts" doc:id="bb7d5e46-7258-4a59-8c44-9e4101ceb779" >
 			<db:sql >SELECT AccountNumber, Description, Industry, Name, NumberOfEmployees, Phone, Type, LastModifiedDate FROM Account WHERE LastModifiedDate &gt; :lastModifiedDate ORDER BY LastModifiedDate ASC</db:sql>
-			<db:input-parameters ><![CDATA[#[{'lastModifiedDate': vars.lastQueryTimestamp}]]]></db:input-parameters>
+			<db:input-parameters ><![CDATA[#[{'lastModifiedDate': payload.sqldate}]]]></db:input-parameters>
 		</db:select>
-    	<os:store key="watermark" failIfPresent="false" failOnNullValue="false" objectStore="watermarkStore" doc:name="Store lastQueryTimestamp">
-        	<os:value>#[max(payload map $.LastModifiedDate)]</os:value>
+		<os:store key="watermark" failOnNullValue="false" objectStore="watermarkStore" doc:name="Store lastQueryTimestamp">
+        	<os:value><![CDATA[#[max(payload map $.LastModifiedDate) as String]]]></os:value>
     	</os:store>
 	</flow>
 </mule>
