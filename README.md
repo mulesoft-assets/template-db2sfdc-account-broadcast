@@ -32,12 +32,12 @@ This Template should serve as a foundation for the process of broadcasting accou
 
 Requirements have been set not only to be used as examples, but also to establish a starting point to adapt your integration to your requirements.
 
-As implemented, this Anypoint Template leverages the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing). The batch job is divided in Process and On Complete stages. The integration is triggered by a scheduler defined in the flow that is going to trigger the application, querying newest Database updates/creations matching a filter criteria and executing the batch job. During the Process stage, each Database Account will be filtered depending on, if it has an existing matching Account in the Salesforce. The last step of the Process stage will group the accounts and create/update them in Salesforce. Finally during the On Complete stage the Anypoint Template will logoutput statistics data into the console.
+As implemented, this Anypoint Template leverages the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing). The batch job is divided in *Process* and *On Complete* stages. The integration is triggered by a scheduler defined in the flow that is going to trigger the application, querying newest Database updates/creations matching a filter criteria and executing the batch job. During the *Process* stage, each Database Account will be filtered depending on, if it has an existing matching Account in the Salesforce. The last step of the *Process* stage will group the accounts and create/update them in Salesforce. Finally during the *On Complete* stage the Anypoint Template will logoutput statistics data into the console.
 
 # Considerations <a name="considerations"/>
 
 To make this Anypoint Template run, there are certain preconditions that must be considered. All of them deal with the preparations in both source (Database) and destination (Salesforce) systems, that must be made in order for all to run smoothly. 
-**Failling to do so could lead to unexpected behavior of the template.**
+**Failing to do so could lead to unexpected behavior of the template.**
 
 This particular Anypoint Template illustrate the broadcast use case between Database and a Salesforce, thus it requires a Database instance to work.
 The Anypoint Template comes packaged with a SQL script to create the Database table that uses. It is the user responsability to use that script to create the table in an available schema and change the configuration accordingly. The SQL script file can be found in [src/main/resources/account.sql](../master/src/main/resources/account.sql)
@@ -91,7 +91,7 @@ There are no particular considerations for this Anypoint Template regarding Sale
 
 # Run it! <a name="runit"/>
 Simple steps to get Database to Salesforce Account Broadcast running.
-See below.
+
 
 ## Running on premise <a name="runonopremise"/>
 In this section we detail the way you should run your Anypoint Template on your computer.
@@ -107,10 +107,8 @@ First thing to know if you are a newcomer to Mule is where to get the tools.
 ### Importing an Anypoint Template into Studio
 Mule Studio offers several ways to import a project into the workspace, for instance: 
 
-+ Anypoint Studio generated Deployable Archive (.zip)
-+ Anypoint Studio Project from External Location
-+ Maven-based Mule Project from pom.xml
-+ Mule ESB Configuration XML from External Location
++ Anypoint Studio Project from File System
++ Packaged mule application (.jar)
 
 You can find a detailed description on how to do so in this [Documentation Page](http://www.mulesoft.org/documentation/display/current/Importing+and+Exporting+in+Studio).
 
@@ -140,15 +138,17 @@ Mule Studio provides you with really easy way to deploy your Template directly t
 ## Properties to be configured (With examples) <a name="propertiestobeconfigured"/>
 In order to use this Mule Anypoint Template you need to configure properties (Credentials, configurations, etc.) either in properties file or in CloudHub as Environment Variables. Detail list with examples:
 ### Application configuration
-**Application configuration**
-
+**Batch Aggregator configuration**
 + page.size `200`
+
+**Scheduler configuration**
 + scheduler.frequency `10000`
 + scheduler.startDelay `100`
-+ watermark.default.expression `YESTERDAY`
+
+**Watermarking default last query timestamp**
++ watermark.default.expression `2016-12-13T03:00:59Z`
 
 **Database Connector configuration**
-
 + db.host `localhost`
 + db.port `3306`
 + db.user `user-name1`
@@ -158,7 +158,6 @@ In order to use this Mule Anypoint Template you need to configure properties (Cr
 **Note:** If it is required to connect to a different Database there should be provided the jar for the library and changed the value of that field in the connector.
 
 **Salesforce Connector configuration**
-
 + sfdc.username `joan.baez@orgb`
 + sfdc.password `JoanBaez456`
 + sfdc.securityToken `ces56arl7apQs56XTddf34X`
@@ -166,11 +165,11 @@ In order to use this Mule Anypoint Template you need to configure properties (Cr
 # API Calls <a name="apicalls"/>
 Salesforce imposes limits on the number of API Calls that can be made. Therefore calculating this amount may be an important factor to consider. Account Broadcast Template calls to the API can be calculated using the formula:
 
-***1 + X + X / 200***
+***1 + X + X / ${page.size}***
 
 Being ***X*** the number of Accounts to be synchronized on each run. 
 
-The division by ***200*** is because, by default, Accounts are gathered in groups of 200 for each Upsert API Call in the commit step. Also consider that this calls are executed repeatedly every polling cycle.	
+The division by ***${page.size}*** is because, by default, Accounts are gathered in groups of ${page.size} for each Upsert API Call in the commit step. Also consider that this calls are executed repeatedly every polling cycle.	
 
 For instance if 10 records are fetched from origin instance, then 12 api calls will be made (1 + 10 + 1).
 
@@ -199,9 +198,9 @@ Functional aspect of the Anypoint Template is implemented on this XML, directed 
 The several message processors constitute four high level actions that fully implement the logic of this Anypoint Template:
 
 1. Job execution is invoked from SchedulerFlow (endpoints.xml) everytime there is new query executed asking for created/updated Accounts.
-2. During the Process stage, each Database Account will be filtered depending on, if it has an existing matching Account in the Salesforce.
-3. The last step of the Process stage will group the Accounts and create/update them in Salesforce.
-4. Finally during the On Complete stage the Anypoint Template will log output statistics data into the console.
+2. During the *Process* stage, each Database Account will be filtered depending on, if it has an existing matching Account in the Salesforce.
+3. The last step of the *Process* stage will group the Accounts and create/update them in Salesforce.
+4. Finally during the *On Complete* stage the Anypoint Template will log output statistics data into the console.
 
 
 
