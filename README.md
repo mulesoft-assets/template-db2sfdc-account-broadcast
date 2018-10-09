@@ -1,6 +1,8 @@
 
 # Anypoint Template: Database to Salesforce Account Broadcast
 
+![80f67320-DatabaseToSalesforceAcctBrdct.png](https://exchange2-file-upload-service-kprod.s3.us-east-1.amazonaws.com/80f67320-DatabaseToSalesforceAcctBrdct.png)
+
 # License Agreement
 This template is subject to the conditions of the 
 <a href="https://s3.amazonaws.com/templates-examples/AnypointTemplateLicense.pdf">MuleSoft License Agreement</a>.
@@ -18,17 +20,15 @@ As implemented, this template leverages the batch module. The batch job is divid
 
 # Considerations
 
-To make this template run, there are certain preconditions that must be considered. All of them deal with the preparations in both the source (database) and destination (Salesforce) systems, that must be made in order for all to run smoothly. 
-Failing to do so could lead to unexpected behavior of the template.
+To make this template run, there are certain preconditions that must be considered. All of them deal with the preparations in both the source (database) and destination (Salesforce) systems, that must be made for this template to run smoothly. 
+Failing to do so can lead to unexpected behavior of the template.
 
-This template illustrate the broadcast use case between a database and Salesforce, thus it requires a database instance to work.
+This template illustrates the broadcast use case between a database and Salesforce, thus it requires a database instance to work.
 The template comes packaged with a SQL script to create the database table that the template uses. It is your responsibility to use that script to create the table in an available schema and change the configuration accordingly. The SQL script file can be found in src/main/resources/account.sql.
 
-## DB Considerations
+## Database Considerations
 
-To get this template to work:
-
-This template may use date time or timestamp fields from the database to do comparisons and take further actions.
+This template uses date time or timestamp fields from the database to do comparisons and take further actions.
 While the template handles the time zone by sending all such fields in a neutral time zone, it cannot handle time offsets.
 We define time offsets as the time difference that may surface between date time and timestamp fields from different systems due to a differences in the system's internal clock.
 Take this in consideration and take the actions needed to avoid the time offset.
@@ -40,29 +40,17 @@ There are no considerations with using a database as a data origin.
 
 ## Salesforce Considerations
 
-Here's what you need to know about Salesforce to get this template to work.
-
-### FAQ
-
-- Where can I check that the field configuration for my Salesforce instance is the right one? See: <a href="https://help.salesforce.com/HTViewHelpDoc?id=checking_field_accessibility_for_a_particular_field.htm&language=en_US">Salesforce: Checking Field Accessibility for a Particular Field</a>
-- Can I modify the Field Access Settings? How? See: <a href="https://help.salesforce.com/HTViewHelpDoc?id=modifying_field_access_settings.htm&language=en_US">Salesforce: Modifying Field Access Settings</a>
+- Where can I check that the field configuration for my Salesforce instance is the right one? See: <a href="https://help.salesforce.com/HTViewHelpDoc?id=checking_field_accessibility_for_a_particular_field.htm&language=en_US">Salesforce: Checking Field Accessibility for a Particular Field</a>.
+- Can I modify the Field Access Settings? How? See: <a href="https://help.salesforce.com/HTViewHelpDoc?id=modifying_field_access_settings.htm&language=en_US">Salesforce: Modifying Field Access Settings</a>.
 
 
 ### As a Data Destination
 
 There are no considerations with using Salesforce as a data destination.
 
-
-
-
-
-
-
-
-
 # Run it!
-Simple steps to get Database to Salesforce Account Broadcast running.
 
+You can run this template on premises or in the cloud.
 
 ## Running On Premises
 In this section we help you run your template on your computer.
@@ -138,7 +126,7 @@ Salesforce imposes limits on the number of API calls that can be made. Therefore
 
 ***X*** is the number of accounts to be synchronized on each run. 
 
-Dividing by ***${page.size}*** is because, by default, accounts are gathered in groups of ${page.size} for each upsert API call in the commit step. Also consider that these calls execute repeatedly every polling cycle.	
+Divide by ***${page.size}***  because by default, accounts are gathered in groups of ${page.size} for each upsert API call in the commit step. Also consider that these calls execute repeatedly every polling cycle.	
 
 For instance if 10 records are fetched from an origin instance, then 12 API calls have to be made (1 + 10 + 1).
 
@@ -153,7 +141,6 @@ More files are available such as test classes and Mule application files, but to
 * businessLogic.xml
 * endpoints.xml
 * errorHandling.xml
-
 
 ## config.xml
 Configuration for connectors and configuration properties are set in this file. Even change the configuration here, all parameters that can be modified are in properties file, which is the recommended place to make your changes. However if you want to do core changes to the logic, you need to modify this file.
@@ -170,16 +157,12 @@ The several message processors constitute four high level actions that fully imp
 3. The last step of the *Process* stage groups the accounts and creates or updates them in Salesforce.
 4. Finally during the *On Complete* stage, the template logs the output statistics data on the console.
 
-
-
 ## endpoints.xml
 This file is formed by two flows.
 
 The scheduler flow contains the Scheduler endpoint that periodically triggers the watermarking flow and executes the batch job process.
 
 The watermarking flow contains watermarking logic that queries the database for updated or created accounts that meet the defined criteria in the query since the last polling. The last invocation timestamp is stored by using the Object Store component and updates after each database query.
-
-
 
 ## errorHandling.xml
 This is the right place to handle how your integration reacts depending on the different exceptions. 
