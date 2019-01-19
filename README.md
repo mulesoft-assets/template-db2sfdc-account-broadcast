@@ -1,6 +1,10 @@
 
 # Anypoint Template: Database to Salesforce Account Broadcast
 
+Broadcasts changes in database accounts to Salesforce in real time. The detection criteria and fields to move are configurable. Additional systems can be easily added to be notified of changes. Real time synchronization is achieved via configurable rapid polling of the database.  You can use the template for free with Mule Runtime Enterprise Edition, CloudHub, or as a trial in Anypoint Studio.
+
+![80f67320-DatabaseToSalesforceAcctBrdct.png](https://exchange2-file-upload-service-kprod.s3.us-east-1.amazonaws.com/80f67320-DatabaseToSalesforceAcctBrdct.png)
+
 ![80f67320-DatabaseToSalesforceAcctBrdct.png](https://exchange2-file-upload-service-kprod.s3.us-east-1.amazonaws.com/80f67320-DatabaseToSalesforceAcctBrdct.png)
 
 # License Agreement
@@ -41,7 +45,7 @@ There are no considerations with using a database as a data origin.
 ## Salesforce Considerations
 
 - Where can I check that the field configuration for my Salesforce instance is the right one? See: <a href="https://help.salesforce.com/HTViewHelpDoc?id=checking_field_accessibility_for_a_particular_field.htm&language=en_US">Salesforce: Checking Field Accessibility for a Particular Field</a>.
-- Can I modify the Field Access Settings? How? See: <a href="https://help.salesforce.com/HTViewHelpDoc?id=modifying_field_access_settings.htm&language=en_US">Salesforce: Modifying Field Access Settings</a>.
+- How can I modify the Field Access Settings? See: <a href="https://help.salesforce.com/HTViewHelpDoc?id=modifying_field_access_settings.htm&language=en_US">Salesforce: Modifying Field Access Settings</a>.
 
 
 ### As a Data Destination
@@ -59,8 +63,8 @@ In this section we help you run your template on your computer.
 ### Where to Download Anypoint Studio and the Mule Runtime
 If you are a newcomer to Mule, here is where to get the tools.
 
-+ [Download Anypoint Studio](https://www.mulesoft.com/platform/studio)
-+ [Download Mule runtime](https://www.mulesoft.com/lp/dl/mule-esb-enterprise)
+- [Download Anypoint Studio](https://www.mulesoft.com/platform/studio)
+- [Download Mule runtime](https://www.mulesoft.com/lp/dl/mule-esb-enterprise)
 
 
 ### Importing a Template into Studio
@@ -71,67 +75,71 @@ Anypoint Platform credentials, search for the template, and click **Open**.
 ### Running on Studio
 After you import your template into Anypoint Studio, follow these steps to run it:
 
-+ Locate the properties file `mule.dev.properties`, in src/main/resources.
-+ Complete all the properties required as per the examples in the "Properties to Configure" section.
-+ Right click the template project folder.
-+ Hover your mouse over `Run as`
-+ Click `Mule Application (configure)`
-+ Inside the dialog, select Environment and set the variable `mule.env` to the value `dev`
-+ Click `Run`
+1. Locate the properties file `mule.dev.properties`, in src/main/resources.
+2. Complete all the properties in the "Properties to Configure" section.
+3. Right click the template project folder.
+4. Hover your mouse over `Run as`.
+5. Click `Mule Application (configure)`.
+6. Inside the dialog, select Environment and set the variable `mule.env` to the value `dev`.
+7. Click `Run`.
 
 
-### Running on Mule Standalone
+### Run on Mule Standalone
 Complete all properties in one of the property files, for example in mule.prod.properties and run your app with the corresponding environment variable. To follow the example, this is `mule.env=prod`. 
 
 
-## Running on CloudHub
+## Run on CloudHub
 While creating your application on CloudHub (or you can do it later as a next step), go to Runtime Manager > Manage Application > Properties to set the environment variables listed in "Properties to Configure" as well as the **mule.env**.
 
 
-### Deploying your Anypoint Template on CloudHub
+### Deploy your Anypoint Template on CloudHub
 Studio provides an easy way to deploy your template directly to CloudHub, for the specific steps to do so check this
 
 
 ## Properties to Configure
 To use this template, configure properties (credentials, configurations, etc.) in the properties file or in CloudHub from Runtime Manager > Manage Application > Properties. The sections that follow list example values.
+
 ### Application Configuration
+
 **Batch Aggregator Configuration**
-+ page.size `200`
+- page.size `200`
 
 **Scheduler Configuration**
-+ scheduler.frequency `10000`
-+ scheduler.startDelay `100`
+
+- scheduler.frequency `10000`
+- scheduler.startDelay `100`
 
 **Watermarking Default Last Query Timestamp**
-+ watermark.default.expression `2018-12-13T03:00:59Z`
+
+- watermark.default.expression `2018-12-13T03:00:59Z`
 
 **Database Connector Configuration**
-+ db.host `localhost`
-+ db.port `3306`
-+ db.user `user-name1`
-+ db.password `user-password1`
-+ db.databasename `dbname1`
+
+- db.host `localhost`
+- db.port `3306`
+- db.user `user-name1`
+- db.password `user-password1`
+- db.databasename `dbname1`
 
 **Note:** If you need to connect to a different database, provide a JAR file for the library and change the value of that field in the connector.
 
 **Salesforce Connector Configuration**
-+ sfdc.username `joan.baez@orgb`
-+ sfdc.password `JoanBaez456`
-+ sfdc.securityToken `ces56arl7apQs56XTddf34X`
+
+- sfdc.username `joan.baez@orgb`
+- sfdc.password `JoanBaez456`
+- sfdc.securityToken `ces56arl7apQs56XTddf34X`
 
 # API Calls
 Salesforce imposes limits on the number of API calls that can be made. Therefore calculating this amount may be an important factor to consider. The account broadcast template calls to the API can be calculated using the formula:
 
-***1 + X + X / ${page.size}***
-
-***X*** is the number of accounts to be synchronized on each run. 
-
-Divide by ***${page.size}***  because by default, accounts are gathered in groups of ${page.size} for each upsert API call in the commit step. Also consider that these calls execute repeatedly every polling cycle.	
+- ***1 + X + X / ${page.size}*** -- Where ***X*** is the number of accounts to be synchronized on each run. 
+- Divide by ***${page.size}***  because by default, accounts are gathered in groups of ${page.size} for each upsert API call in the commit step. Also consider that these calls execute repeatedly every polling cycle.	
 
 For instance if 10 records are fetched from an origin instance, then 12 API calls have to be made (1 + 10 + 1).
 
 
 # Customize It!
+
 This brief guide intends to give a high level idea of how this template is built and how you can change it according to your needs.
 As Mule applications are based on XML files, this page describes the XML files used with this template.
 
@@ -149,6 +157,7 @@ In the Studio visual editor, the properties are on the *Global Element* tab.
 
 
 ## businessLogic.xml
+
 The functional aspect of the template is implemented on this XML, directed by a batch job that's responsible for creations and updates. 
 The several message processors constitute four high level actions that fully implement the logic of this template:
 
@@ -158,6 +167,7 @@ The several message processors constitute four high level actions that fully imp
 4. Finally during the *On Complete* stage, the template logs the output statistics data on the console.
 
 ## endpoints.xml
+
 This file is formed by two flows.
 
 The scheduler flow contains the Scheduler endpoint that periodically triggers the watermarking flow and executes the batch job process.
@@ -165,9 +175,6 @@ The scheduler flow contains the Scheduler endpoint that periodically triggers th
 The watermarking flow contains watermarking logic that queries the database for updated or created accounts that meet the defined criteria in the query since the last polling. The last invocation timestamp is stored by using the Object Store component and updates after each database query.
 
 ## errorHandling.xml
+
 This is the right place to handle how your integration reacts depending on the different exceptions. 
 This file provides error handling that is referenced by the main flow in the business logic.
-
-
-
-
