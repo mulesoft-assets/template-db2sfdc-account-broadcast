@@ -25,7 +25,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 </flow>
 <flow name="watermarkingFlow">
 		<os:retrieve key="watermark" objectStore="watermarkStore" target="lastQueryTimestamp" doc:name="Retrieve lastQueryTimestamp">
-    	    <os:default-value><![CDATA[#[${watermark.default.expression}]]]></os:default-value>
+    	    <os:default-value ><![CDATA[#[read(p('watermark.default.expression'))]]]></os:default-value>
 	    </os:retrieve>
 		<ee:transform doc:name="Prepare sqldate" doc:id="2a034efe-14c2-470b-b673-a5f2d5e414ea" >
 			<ee:message >
